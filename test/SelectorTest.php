@@ -5,6 +5,7 @@ namespace CBH\DataBaseIterator;
 use PHPUnit\Framework\TestCase;
 use Zend\Db\Adapter\Driver\ResultInterface;
 use Zend\Db\Adapter\Driver\StatementInterface;
+use Zend\Db\Sql\Expression;
 use Zend\Db\Sql\Predicate\Between;
 use Zend\Db\Sql\Select;
 use Zend\Db\Sql\Sql;
@@ -164,14 +165,30 @@ class SelectorTest extends TestCase
                     function ($fields) {
                         $this->assertInternalType('array', $fields);
                         $this->assertArrayHasKey('min', $fields);
+                        /** @var Expression $min */
+                        $min = $fields['min'];
+                        $this->assertInstanceOf(
+                            Expression::class,
+                            $min
+                        );
                         $this->assertNotFalse(
-                            strpos($fields['min'], $this->iterateOver)
+                            strpos($min->getExpression(), $this->iterateOver)
                         );
                         $this->assertArrayHasKey('max', $fields);
+                        /** @var Expression $max */
+                        $max = $fields['max'];
+                        $this->assertInstanceOf(
+                            Expression::class,
+                            $max
+                        );
                         $this->assertNotFalse(
-                            strpos($fields['max'], $this->iterateOver)
+                            strpos($max->getExpression(), $this->iterateOver)
                         );
                         $this->assertArrayHasKey('total', $fields);
+                        $this->assertInstanceOf(
+                            Expression::class,
+                            $fields['total']
+                        );
 
                         return true;
                     }

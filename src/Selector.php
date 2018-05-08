@@ -3,6 +3,7 @@
 namespace CBH\DataBaseIterator;
 
 use CBH\DataBaseIterator\ValueObject\AggregationInfo;
+use Zend\Db\Sql\Expression;
 use Zend\Db\Sql\Predicate\Between;
 
 class Selector implements SelectorInterface
@@ -98,9 +99,9 @@ class Selector implements SelectorInterface
     public function aggregate()
     {
         $fields = [
-            'min'   => "min({$this->iterateOver})",
-            'max'   => "max({$this->iterateOver})",
-            'total' => 'count(*)',
+            'min'   => new Expression("min({$this->iterateOver})"),
+            'max'   => new Expression("max({$this->iterateOver})"),
+            'total' => new Expression('count(*)'),
         ];
 
         try {
