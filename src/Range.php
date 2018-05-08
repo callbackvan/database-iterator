@@ -95,6 +95,8 @@ class Range implements RangeInterface
      */
     public function hasNext()
     {
-        return $this->getTo() !== $this->max;
+        $to = $this->getTo();
+
+        return $to !== $this->max;
     }
 }

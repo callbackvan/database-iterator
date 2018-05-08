@@ -50,7 +50,7 @@ class IteratorTest extends \PHPUnit_Framework_TestCase
             );
 
         $this->range
-            ->expects($this->exactly(5))
+            ->expects($this->exactly(4))
             ->method('next');
 
         $this->range
@@ -58,12 +58,11 @@ class IteratorTest extends \PHPUnit_Framework_TestCase
             ->method('rewind');
 
         $this->range
-            // 1st time, when 1st empty generator was returned
-            // 2nd time, when 2nd empty generator was returned
-            // 3rd time, when called method \CBH\DataBaseIterator\Iterator::valid
-            ->expects($this->exactly(3))
+            // 1-5 times in \CBH\DataBaseIterator\Iterator::load
+            // 6th time, when called method \CBH\DataBaseIterator\Iterator::valid
+            ->expects($this->exactly(6))
             ->method('hasNext')
-            ->willReturn(true, false, false);
+            ->willReturn(true, true, true, true, false, false);
 
         $counter = 0;
 
@@ -71,6 +70,64 @@ class IteratorTest extends \PHPUnit_Framework_TestCase
             $this->assertSame($this->calculateExpectedKey($counter), $key);
             $this->assertSame($expected[$counter++], $value);
         }
+        $this->assertSame(count($expected), $counter);
+    }
+
+    /**
+     * @covers \CBH\DataBaseIterator\Iterator::__construct
+     * @covers \CBH\DataBaseIterator\Iterator::current
+     * @covers \CBH\DataBaseIterator\Iterator::next
+     * @covers \CBH\DataBaseIterator\Iterator::key
+     * @covers \CBH\DataBaseIterator\Iterator::valid
+     * @covers \CBH\DataBaseIterator\Iterator::rewind
+     * @covers \CBH\DataBaseIterator\Iterator::load
+     */
+    public function testIteratorEndsNotEmpty()
+    {
+        $expected = array_map(
+            function ($number) {
+                return ["Item #{$number}"];
+            },
+            range(0, 99)
+        );
+
+        $this->selector
+            ->expects($this->exactly(5))
+            ->method('load')
+            ->with($this->range)
+            ->willReturn(
+            // has 10 elements
+                $this->makeGenerator(array_slice($expected, 0, 10)),
+                // has 10 elements
+                $this->makeGenerator(array_slice($expected, 10, 10)),
+                // has 10 elements
+                $this->makeGenerator(array_slice($expected, 20, 10)),
+                // has 69 elements
+                $this->makeGenerator(array_slice($expected, 30, 69)),
+                // last element
+                $this->makeGenerator(array_slice($expected, 99, 1))
+            );
+
+        $this->range
+            ->expects($this->exactly(4))
+            ->method('next');
+
+        $this->range
+            ->expects($this->once())
+            ->method('rewind');
+
+        $this->range
+            // 1st time, when called method \CBH\DataBaseIterator\Iterator::load
+            // 2nd time, when called method \CBH\DataBaseIterator\Iterator::valid
+            ->expects($this->exactly(6))
+            ->method('hasNext')
+            ->willReturn(true, true, true, true, false, false);
+
+        $counter = 0;
+        foreach ($this->iterator as $value) {
+            $this->assertSame($expected[$counter++], $value);
+        }
+        $this->assertSame(count($expected), $counter);
     }
 
     /**

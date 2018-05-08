@@ -10,6 +10,8 @@ class Iterator implements \Iterator
     private $range;
     /** @var \Generator */
     private $data;
+    /** @var bool */
+    private $fullFilled = false;
 
     /**
      * Iterator constructor.
@@ -88,6 +90,7 @@ class Iterator implements \Iterator
     public function rewind()
     {
         $this->range->rewind();
+        $this->fullFilled = false;
         $this->load();
     }
 
@@ -99,8 +102,24 @@ class Iterator implements \Iterator
     private function load()
     {
         do {
+            if ($this->fullFilled === true) {
+                break;
+            }
+
             $this->data = $this->selector->load($this->range);
+            if (!$this->range->hasNext()) {
+                // the last page was loaded
+                $this->fullFilled = true;
+
+                break;
+            }
+
             $this->range->next();
-        } while (!$this->data->valid() && $this->range->hasNext());
+
+            if ($this->data->valid()) {
+                // got data
+                break;
+            }
+        } while (true);
     }
 }
